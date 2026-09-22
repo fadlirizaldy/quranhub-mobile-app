@@ -1,13 +1,31 @@
+import ListQuranSection from "@/components/list-quran-section";
 import { colors, spacing } from "@/themes";
+import { getAllSurah } from "@/utils/api";
 import { Surah } from "@/utils/types";
 import { LinearGradient } from "expo-linear-gradient";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import Svg, { Circle, Line } from "react-native-svg";
 
 export default function Index() {
   const [surahs, setSurahs] = useState<Surah[]>([]);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    getAllSurah()
+      .then(setSurahs)
+      .catch(() => setError("Gagal memuat daftar surah"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filtered = surahs.filter(
+    (s) =>
+      s.nama_latin.toLowerCase().includes(search.toLowerCase()) ||
+      s.arti.toLowerCase().includes(search.toLowerCase()) ||
+      String(s.nomor).includes(search),
+  );
 
   const now = new Date();
   const hour = now.getHours();
@@ -33,18 +51,15 @@ export default function Index() {
           style={styles.cicleDecorationLeft}
         />
 
-        <Text className="text-white/80 text-sm font-medium">{greeting}</Text>
-        <Text className="text-white text-2xl font-extrabold mt-0.5">
-          Al-Quran
-        </Text>
-        <Text className="text-white/70 text-xs mt-1">
-          114 Surah · Baca kapan saja
-        </Text>
+        <View>
+          <Text style={styles.greetingText}>{greeting}</Text>
+          <Text style={styles.titleText}>Al-Quran</Text>
+          <Text style={styles.subtitleText}>114 Surah · Baca kapan saja</Text>
+        </View>
 
         {/* search */}
         <View className="relative mt-4" style={styles.searchContainer}>
           <Svg
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
             width="16"
             height="16"
             viewBox="0 0 24 24"
@@ -53,6 +68,7 @@ export default function Index() {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
+            style={styles.searchIcon}
           >
             <Circle cx="11" cy="11" r="8" />
             <Line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -60,12 +76,14 @@ export default function Index() {
           <TextInput
             placeholder="Cari surah..."
             value={search}
-            // onChange={(e) => setSearch(e)}
-            className="w-full bg-white rounded-xl pl-9 pr-4 py-2.5 text-sm font-medium text-gray-700 outline-none shadow-sm placeholder-gray-400"
+            onChangeText={(newText) => setSearch(newText)}
             style={styles.searchInput}
           />
         </View>
       </LinearGradient>
+
+      {/* List */}
+      <ListQuranSection surahs={filtered} loading={loading} error={error} />
     </View>
   );
 }
@@ -77,10 +95,27 @@ const styles = StyleSheet.create({
   },
   containerHeader: {
     paddingHorizontal: 20,
-    paddingTop: 64,
-    paddingBottom: 26,
+    paddingTop: 60,
+    paddingBottom: 28,
     overflow: "hidden",
     position: "relative",
+    fontFamily: "Nunito",
+  },
+  greetingText: {
+    color: "rgba(255, 255, 255, 0.8)",
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  titleText: {
+    color: "#FFFFFF",
+    fontSize: 24,
+    fontWeight: "800",
+    marginTop: 5,
+  },
+  subtitleText: {
+    color: "rgba(255, 255, 255, 0.7)",
+    fontSize: 12,
+    marginTop: 6,
   },
   cicleDecorationRight: {
     position: "absolute",
@@ -104,13 +139,20 @@ const styles = StyleSheet.create({
   },
 
   searchContainer: {
-    marginTop: 4,
+    marginTop: 15,
     position: "relative",
   },
+  searchIcon: {
+    position: "absolute",
+    left: 12,
+    zIndex: 10,
+    top: 14,
+    color: colors.colorSg,
+  },
   searchInput: {
-    borderRadius: spacing.xl,
+    borderRadius: spacing.lg,
     backgroundColor: "#FFF",
-    paddingLeft: 20,
+    paddingLeft: 36,
     paddingRight: 14,
     paddingVertical: 12,
   },
