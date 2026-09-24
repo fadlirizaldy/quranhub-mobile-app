@@ -22,7 +22,7 @@ export default function Index() {
 
   const filtered = surahs.filter(
     (s) =>
-      s.nama_latin.toLowerCase().includes(search.toLowerCase()) ||
+      s.namaLatin.toLowerCase().includes(search.toLowerCase()) ||
       s.arti.toLowerCase().includes(search.toLowerCase()) ||
       String(s.nomor).includes(search),
   );
