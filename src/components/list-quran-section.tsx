@@ -56,12 +56,12 @@ const ListQuranSection = ({ surahs, loading, error }: ListQuranProps) => {
                 {/* Surah details */}
                 <View style={styles.infoContainer}>
                   <View style={styles.titleRow}>
-                    <Text style={styles.surahName}>{surah.nama_latin}</Text>
+                    <Text style={styles.surahName}>{surah.namaLatin}</Text>
                     <Text style={{ color: "#9CA3AF" }}>•</Text>
                     <Text style={styles.surahMeaning}>{surah.arti}</Text>
                   </View>
                   <Text style={styles.surahMeta}>
-                    {surah.tempat_turun} · {surah.jumlah_ayat} ayat
+                    {surah.tempatTurun} · {surah.jumlahAyat} ayat
                   </Text>
                 </View>
 

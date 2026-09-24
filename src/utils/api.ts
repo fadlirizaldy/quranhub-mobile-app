@@ -1,23 +1,27 @@
 import { Doa, Surah, TafsirData } from "./types";
 
+const QURAN_BASE_V2 = "https://equran.id/api/v2";
 const QURAN_BASE = "https://equran.id/api";
 
 export async function getAllSurah(): Promise<Surah[]> {
-  const r = await fetch(`${QURAN_BASE}/surat`);
+  const r = await fetch(`${QURAN_BASE_V2}/surat`);
   if (!r.ok) throw new Error("Failed to fetch surahs");
-  return r.json();
+  const json = await r.json();
+  return json.data;
 }
 
 export async function getDetailSurah(id: number): Promise<Surah> {
-  const r = await fetch(`${QURAN_BASE}/surat/${id}`);
+  const r = await fetch(`${QURAN_BASE_V2}/surat/${id}`);
   if (!r.ok) throw new Error("Failed to fetch surah");
-  return r.json();
+  const json = await r.json();
+  return json.data;
 }
 
 export async function getDetailTafsir(id: number): Promise<TafsirData> {
-  const r = await fetch(`${QURAN_BASE}/tafsir/${id}`);
+  const r = await fetch(`${QURAN_BASE_V2}/tafsir/${id}`);
   if (!r.ok) throw new Error("Failed to fetch tafsir");
-  return r.json();
+  const json = await r.json();
+  return json.data;
 }
 
 export async function getShalatSchedule(
@@ -62,56 +66,16 @@ export async function getLocationName(
 }
 
 export async function getAllDoa(): Promise<Doa[]> {
-  try {
-    const r = await fetch("https://quranhub.web.id/api/doa");
-    if (!r.ok) throw new Error();
-    const d = await r.json();
-    const list = Array.isArray(d) ? d : d.data || [];
-    return list.map((item: Record<string, string | number>) => ({
-      id: item.id as number,
-      doa: (item.doa || item.nama || "") as string,
-      arab: (item.arab || item.ayat || "") as string,
-      latin: (item.latin || "") as string,
-      artinya: (item.artinya || "") as string,
-    }));
-  } catch {
-    const r = await fetch("https://api.myquran.com/v2/doa/semua");
-    if (!r.ok) throw new Error("Failed to fetch doa");
-    const d = await r.json();
-    return (d.data || []).map((item: Record<string, string | number>) => ({
-      id: item.id as number,
-      doa: (item.doa || "") as string,
-      arab: (item.arab || item.ayat || "") as string,
-      latin: (item.latin || "") as string,
-      artinya: (item.artinya || "") as string,
-    }));
-  }
+  const r = await fetch(`${QURAN_BASE}/doa`);
+
+  const json = await r.json();
+  if (json.status !== "success") throw new Error("Failed to fetch doa");
+  return json.data;
 }
 
 export async function getDetailDoa(id: number): Promise<Doa> {
-  try {
-    const r = await fetch(`https://quranhub.web.id/api/doa/${id}`);
-    if (!r.ok) throw new Error();
-    const d = await r.json();
-    const item = Array.isArray(d) ? d[0] : d.data?.[0] || d;
-    return {
-      id: item.id,
-      doa: item.doa || item.nama || "",
-      arab: item.arab || item.ayat || "",
-      latin: item.latin || "",
-      artinya: item.artinya || "",
-    };
-  } catch {
-    const r = await fetch(`https://api.myquran.com/v2/doa/${id}`);
-    if (!r.ok) throw new Error("Failed to fetch doa detail");
-    const d = await r.json();
-    const item = d.data?.[0] || d.data || {};
-    return {
-      id: item.id || id,
-      doa: item.doa || "",
-      arab: item.arab || item.ayat || "",
-      latin: item.latin || "",
-      artinya: item.artinya || "",
-    };
-  }
+  const r = await fetch(`${QURAN_BASE}/doa/${id}`);
+  const json = await r.json();
+  if (json.status !== "success") throw new Error("Failed to fetch detail doa");
+  return json.data;
 }

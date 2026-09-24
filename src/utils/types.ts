@@ -1,19 +1,21 @@
 export interface Ayat {
-  nomor: number;
-  ar: string;
-  tr: string;
-  idn: string;
+  nomorAyat: number;
+  teksArab: string;
+  teksLatin: string;
+  teksIndonesia: string;
+  audio: Record<string, string>;
 }
 
 export interface Surah {
   nomor: number;
   nama: string;
-  nama_latin: string;
-  jumlah_ayat: number;
-  tempat_turun: string;
+  namaLatin: string;
+  jumlahAyat: number;
+  tempatTurun: string;
   arti: string;
   deskripsi: string;
   audio: string;
+  audioFull: Record<string, string>;
   ayat?: Ayat[];
 }
 
@@ -25,18 +27,21 @@ export interface TafsirItem {
 export interface TafsirData {
   nomor: number;
   nama: string;
-  nama_latin: string;
-  jumlah_ayat: number;
+  namaLatin: string;
+  jumlahAyat: number;
   keterangan: string;
   tafsir: TafsirItem[];
 }
 
 export interface Doa {
   id: number;
-  doa: string;
-  arab: string;
-  latin: string;
-  artinya: string;
+  grup: string;
+  nama: string;
+  ar: string;
+  tr: string;
+  idn: string;
+  tentang: string;
+  tag: string[];
 }
 
 export interface BookmarkedVerse {
