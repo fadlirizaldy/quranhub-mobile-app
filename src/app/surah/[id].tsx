@@ -2,9 +2,10 @@ import { colors } from "@/themes";
 import { getDetailSurah } from "@/utils/api";
 import { getBookmarks, saveBookmarks } from "@/utils/bookmarks";
 import { Ayat, BookmarkedVerse, Surah } from "@/utils/types";
+import { Audio } from "expo-av";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -26,7 +27,7 @@ export default function SurahDetailPage() {
   const [error, setError] = useState("");
   const [playing, setPlaying] = useState(false);
   const [bookmarks, setBookmarks] = useState<BookmarkedVerse[]>([]);
-  // const audioRef = useRef<Audio.Sound | null>(null);
+  const audioRef = useRef<Audio.Sound | null>(null);
 
   useEffect(() => {
     if (!surahId) return;
@@ -37,6 +38,15 @@ export default function SurahDetailPage() {
     setError("");
     setSurah(null);
     setPlaying(false);
+
+    // Clean up any existing playing audio before loading a new Surah
+    const cleanupAudio = async () => {
+      if (audioRef.current) {
+        await audioRef.current.unloadAsync();
+        audioRef.current = null;
+      }
+    };
+    cleanupAudio();
 
     getBookmarks().then((stored) => {
       if (isMounted) setBookmarks(stored);
@@ -55,45 +65,59 @@ export default function SurahDetailPage() {
 
     return () => {
       isMounted = false;
+      // Clean up audio when component unmounts
+      if (audioRef.current) {
+        audioRef.current.unloadAsync();
+      }
     };
   }, [surahId]);
 
-  // async function toggleAudio() {
-  //   if (!surah?.audio) return;
+  async function toggleAudio() {
+    // Accessing index "01" from audioFull object
+    const audioUrl = surah?.audioFull?.["01"];
+    if (!audioUrl) return;
 
-  //   try {
-  //     if (!audioRef.current) {
-  //       const { sound } = await Audio.Sound.createAsync(
-  //         { uri: surah.audio },
-  //         { shouldPlay: true },
-  //       );
+    try {
+      // If no sound is loaded yet, create and play it
+      if (!audioRef.current) {
+        const { sound } = await Audio.Sound.createAsync(
+          { uri: audioUrl },
+          { shouldPlay: true },
+        );
 
-  //       audioRef.current = sound;
-  //       sound.setOnPlaybackStatusUpdate((status) => {
-  //         if ("isLoaded" in status && status.isLoaded) {
-  //           setPlaying(status.isPlaying);
-  //         }
-  //         if ("didJustFinish" in status && status.didJustFinish) {
-  //           setPlaying(false);
-  //         }
-  //       });
-  //       setPlaying(true);
-  //       return;
-  //     }
+        audioRef.current = sound;
 
-  //     const status = await audioRef.current.getStatusAsync();
-  //     if (status.isLoaded && status.isPlaying) {
-  //       await audioRef.current.pauseAsync();
-  //       setPlaying(false);
-  //     } else {
-  //       await audioRef.current.playAsync();
-  //       setPlaying(true);
-  //     }
-  //   } catch (error) {
-  //     console.error("Audio toggle error:", error);
-  //     setPlaying(false);
-  //   }
-  // }
+        sound.setOnPlaybackStatusUpdate((status) => {
+          if (status.isLoaded) {
+            setPlaying(status.isPlaying);
+
+            if (status.didJustFinish) {
+              setPlaying(false);
+              sound.unloadAsync(); // Free memory when finished
+              audioRef.current = null;
+            }
+          }
+        });
+        setPlaying(true);
+        return;
+      }
+
+      // Toggle play/pause if already loaded
+      const status = await audioRef.current.getStatusAsync();
+      if (status.isLoaded) {
+        if (status.isPlaying) {
+          await audioRef.current.pauseAsync();
+          setPlaying(false);
+        } else {
+          await audioRef.current.playAsync();
+          setPlaying(true);
+        }
+      }
+    } catch (error) {
+      console.error("Audio toggle error:", error);
+      setPlaying(false);
+    }
+  }
 
   function isBookmarked(ayatNumber: number) {
     return bookmarks.some(
@@ -190,7 +214,7 @@ export default function SurahDetailPage() {
           <View style={styles.actionButtonsRow}>
             {/* Audio Button */}
             <TouchableOpacity
-              // onPress={toggleAudio}
+              onPress={toggleAudio}
               activeOpacity={0.7}
               style={styles.actionButton}
             >
