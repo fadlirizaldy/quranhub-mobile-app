@@ -14,7 +14,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { Circle, Line, Path, Polygon, Rect } from "react-native-svg";
+import Svg, { Circle, Line, Path } from "react-native-svg";
 
 export default function SurahDetailPage() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -24,9 +24,7 @@ export default function SurahDetailPage() {
   const [surah, setSurah] = useState<Surah | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [playing, setPlaying] = useState(false);
   const [bookmarks, setBookmarks] = useState<BookmarkedVerse[]>([]);
-  // const audioRef = useRef<Audio.Sound | null>(null);
 
   useEffect(() => {
     if (!surahId) return;
@@ -36,7 +34,6 @@ export default function SurahDetailPage() {
     setLoading(true);
     setError("");
     setSurah(null);
-    setPlaying(false);
 
     getBookmarks().then((stored) => {
       if (isMounted) setBookmarks(stored);
@@ -57,43 +54,6 @@ export default function SurahDetailPage() {
       isMounted = false;
     };
   }, [surahId]);
-
-  // async function toggleAudio() {
-  //   if (!surah?.audio) return;
-
-  //   try {
-  //     if (!audioRef.current) {
-  //       const { sound } = await Audio.Sound.createAsync(
-  //         { uri: surah.audio },
-  //         { shouldPlay: true },
-  //       );
-
-  //       audioRef.current = sound;
-  //       sound.setOnPlaybackStatusUpdate((status) => {
-  //         if ("isLoaded" in status && status.isLoaded) {
-  //           setPlaying(status.isPlaying);
-  //         }
-  //         if ("didJustFinish" in status && status.didJustFinish) {
-  //           setPlaying(false);
-  //         }
-  //       });
-  //       setPlaying(true);
-  //       return;
-  //     }
-
-  //     const status = await audioRef.current.getStatusAsync();
-  //     if (status.isLoaded && status.isPlaying) {
-  //       await audioRef.current.pauseAsync();
-  //       setPlaying(false);
-  //     } else {
-  //       await audioRef.current.playAsync();
-  //       setPlaying(true);
-  //     }
-  //   } catch (error) {
-  //     console.error("Audio toggle error:", error);
-  //     setPlaying(false);
-  //   }
-  // }
 
   function isBookmarked(ayatNumber: number) {
     return bookmarks.some(
@@ -188,27 +148,6 @@ export default function SurahDetailPage() {
         {/* Header Action Buttons */}
         {surah && (
           <View style={styles.actionButtonsRow}>
-            {/* Audio Button */}
-            <TouchableOpacity
-              // onPress={toggleAudio}
-              activeOpacity={0.7}
-              style={styles.actionButton}
-            >
-              {playing ? (
-                <Svg width={16} height={16} viewBox="0 0 24 24" fill="#FFFFFF">
-                  <Rect x="6" y="4" width="4" height="16" rx="1" />
-                  <Rect x="14" y="4" width="4" height="16" rx="1" />
-                </Svg>
-              ) : (
-                <Svg width={16} height={16} viewBox="0 0 24 24" fill="#FFFFFF">
-                  <Polygon points="5 3 19 12 5 21 5 3" />
-                </Svg>
-              )}
-              <Text style={styles.actionButtonText}>
-                {playing ? "Jeda Audio" : "Putar Audio"}
-              </Text>
-            </TouchableOpacity>
-
             {/* Tafsir Button */}
             <TouchableOpacity
               onPress={() => router.push(`/tafsir/${surahId}`)}
