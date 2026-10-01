@@ -53,7 +53,7 @@ export default function Index() {
 
         <View>
           <Text style={styles.greetingText}>{greeting}</Text>
-          <Text style={styles.titleText}>Al-Quran</Text>
+          <Text style={styles.titleText}>QuranHub</Text>
           <Text style={styles.subtitleText}>114 Surah · Baca kapan saja</Text>
         </View>
 
